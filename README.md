@@ -380,19 +380,14 @@ const folderSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  folderAccess: {
+    type: String,
+    enum: ['private', 'department', 'organization'],
+    default: 'private'
+  },
   permissions: [{
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    role: {
-      type: String,
-      enum: ['superadmin', 'admin', 'team_member', 'member_bank']
-    },
-    access: [{
-      type: String,
-      enum: ['view', 'upload', 'edit', 'delete', 'download']
-    }]
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'FolderPermission'
   }],
   isActive: {
     type: Boolean,
@@ -403,12 +398,42 @@ const folderSchema = new mongoose.Schema({
 });
 
 // Indexes
-folderSchema.index({ department: 1 });
-folderSchema.index({ parentFolder: 1 });
-folderSchema.index({ path: 1 });
-folderSchema.index({ 'permissions.user': 1 });
-folderSchema.index({ 'permissions.role': 1 });
 folderSchema.index({ department: 1, parentFolder: 1 });
+folderSchema.index({ department: 1, path: 1 }, { unique: true });
+folderSchema.index({ createdBy: 1 });
+
+```
+
+```javascript
+
+const folderPermissionSchema = new mongoose.Schema({
+  folder: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Folder',
+    required: true
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  role: {
+    type: String,
+    enum: ['superadmin', 'admin', 'team_member', 'member_bank'],
+    required: true
+  },
+  access: [{
+    type: String,
+    enum: ['view', 'upload', 'edit', 'delete', 'download']
+  }]
+}, { timestamps: true });
+
+// Indexes
+folderPermissionSchema.index({ folder: 1, user: 1 }, { unique: true });
+folderPermissionSchema.index({ user: 1 });
+folderPermissionSchema.index({ role: 1 });
+
+
 ```
 
 #### 4. Documents Collection
